@@ -3,4 +3,15 @@
 /project/*-shim.sbt
 /project/project/
 /project/target/
+/project/*
 /target/
+
+.sbtserver/
+
+# Scala-IDE specific
+.cache
+.classpath
+.project
+.scala_dependencies
+.worksheet
+/bin/
