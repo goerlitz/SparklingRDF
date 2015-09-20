@@ -42,23 +42,19 @@ object TypeCount {
 
       // load quad file and split in <S, P, O, C>
       val lineRDD = sc.textFile(dataFile)
-      val quadRDD = lineRDD.map(line => parseQuad(line))
 
-      quadRDD.cache()
+      val qp = QuadProcessor(lineRDD)
 
-      countPredicates(quadRDD)
-      countTypes(quadRDD)
+      val pCount = qp.predCount
+      val tCount = qp.typeCount
+      
+      saveKV(pCount, "output/predCount")
+      saveKV(tCount, "output/typeCount")
+      
+      qp.getLiterals.saveAsTextFile("output/literals")
 
     } finally {
       sc.stop()
-    }
-  }
-
-  // TODO: use Try as results
-  def parseQuad(line: String): (Node, Node, Node, Node) = {
-    NxParser.parseNodes(line) match {
-      case Array(s, p, o, c) => (s, p, o, c)
-      case _                 => throw new UnsupportedOperationException("not a quad")
     }
   }
 
@@ -70,21 +66,8 @@ object TypeCount {
     }
   }
 
-  def countPredicates(quadRDD: QuadRDD) = {
-    val predRDD = quadRDD.map { case (s, p, o, c) => (p.getLabel(), 1) }
-    val predCountRDD = predRDD.reduceByKey(_ + _).sortBy(_._2, false)
-
-    predCountRDD.map { case (k, v) => s"$k $v" }.saveAsTextFile("output/predCount")
-  }
-
-  def countTypes(quadRDD: QuadRDD) = {
-    val typeCountRDD = quadRDD
-      .filter { case (s, p, o, c) => rdfType.equalsIgnoreCase(p.getLabel()) }
-      .map { case (s, p, o, c) => (o.getLabel(), 1) }
-      .reduceByKey(_ + _)
-      .sortBy(_._2, false)
-
-    typeCountRDD.saveAsTextFile("output/typeCount")
+  def saveKV(countRDD: RDD[(String, Int)], file: String) = {
+    countRDD.map { case (k, v) => s"$k $v" }.saveAsTextFile(file)
   }
 
 }
