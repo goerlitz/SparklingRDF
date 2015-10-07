@@ -2,7 +2,7 @@ name := """SparklingRDF"""
 
 version := "0.1"
 
-scalaVersion := "2.10.5"
+scalaVersion := "2.10.6"
 
 // Include only src/[main|test]/scala in the compile/test configuration
 unmanagedSourceDirectories in Compile := (scalaSource in Compile).value :: Nil
@@ -11,7 +11,7 @@ unmanagedSourceDirectories in Test    := (scalaSource in Test).value :: Nil
 
 libraryDependencies ++= Seq(
 
-  "org.apache.spark" %% "spark-core" % "1.5.0",
+  "org.apache.spark" %% "spark-core" % "1.5.1",
 
   // testing
   "org.scalatest" %% "scalatest" % "2.2.5" % "test",
@@ -27,4 +27,3 @@ libraryDependencies ++= Seq(
 
 
 fork in run := true
-
