@@ -3,18 +3,27 @@ import org.semanticweb.yars.nx.parser.NxParser
 import scala.util.Try
 import org.semanticweb.yars.nx.Node
 import scala.util.Success
+import scala.util.Failure
 
 object NQuadUtil {
 
   /**
    * Parse NQuads from a text RDD.
-   * 
+   *
    * @param textRDD
-   * @return an RDD of Node tuples.
+   * @return a RDD of Node tuples.
    */
-  def parse(textRDD: RDD[String]): RDD[(Node, Node, Node, Node)] = textRDD.map(tryParse).filter(_.isSuccess).map(asTuple)
+  def parse(textRDD: RDD[String]) = textRDD.map(tryParse).filter(_.isSuccess).map(_.get)
 
-  def tryParse = (line: String) => Try(NxParser.parseNodes(line))
-  def asTuple: Try[Array[Node]] => (Node, Node, Node, Node) = { case Success(Array(s, p, o, c)) => (s, p, o, c) }
+  def getParseFailures(textRDD: RDD[String]) = textRDD.map(tryParse).filter(_.isFailure).map {
+    case Failure(t) => t
+  }
+
+  def tryParse = (line: String) =>
+    Try(
+      NxParser.parseNodes(line) match {
+        case Array(s, p, o, c) => (s, p, o, c)
+        case x: Array[Node]    => throw new IllegalArgumentException(s"not a valid NQuad: (${x.mkString(" ")})")
+      })
 
 }
