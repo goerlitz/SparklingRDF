@@ -1,5 +1,3 @@
-
-
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 import org.apache.spark.SparkContext
@@ -39,13 +37,24 @@ class NQuadUtilTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val literals = parsedRDD.map { case (s, p, o, c) => o }.filter { case lit: Literal => true; case _ => false } map { x => x.getLabel }
     println(literals.count())
   }
-  
-  // TODO: test wrong NQuad
-  it should "fail for invalid quads" in {
-    val testQuadRDD = sc.parallelize(Array("_:me _:loves http://some.thing").seq)
-    val parsedRDD = NQuadUtil.parse(testQuadRDD)
-    
-    parsedRDD.count() shouldEqual(0)
+
+  it should "fail for invalid NQuads" in {
+
+    val examples = """
+      _:Bob .
+      _:Bob _:knows .
+      _:Bob _:knows _:Tom .
+      _:Bob _:knows _:Tom _:MyFriends . // the only correct one
+      """.trim().split("\n").seq
+
+    val textRDD = sc.parallelize(examples)
+
+    val quadRDD = NQuadUtil.parse(textRDD)
+    quadRDD.count() shouldEqual (1)
+
+    val errors = NQuadUtil.getParseFailures(textRDD)
+    errors.count() shouldEqual (3)
+
   }
 
   override def afterAll() = {
