@@ -1,11 +1,10 @@
+package util
+
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 import org.apache.spark.SparkContext
 import org.scalatest.BeforeAndAfterAll
-import org.semanticweb.yars.nx.Literal
-import org.semanticweb.yars.nx.Node
-import org.semanticweb.yars.nx.Resource
-import scala.util.Success
+import util.NQuadUtil
 
 class NQuadUtilTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
@@ -15,7 +14,7 @@ class NQuadUtilTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val validNQuads = """
       _:Bob _:knows _:Tom _:MyFriends .
       <http://ex.com/Bob> <http://ex.com/knows> "Tom" <http://ex.com/Friends> .
-      """.trim.split('\n').seq
+      """.trim.split('\n').toSeq
 
     val textRDD = sc.parallelize(validNQuads)
 
@@ -33,7 +32,7 @@ class NQuadUtilTest extends FlatSpec with Matchers with BeforeAndAfterAll {
       _:Bob _:knows .
       _:Bob _:knows _:Tom .
       _:Bob _:knows _:Tom _:MyFriends _:Other .
-      """.trim.split('\n').seq
+      """.trim.split('\n').toSeq
 
     val textRDD = sc.parallelize(invalidNQuads)
 

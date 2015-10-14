@@ -1,7 +1,9 @@
+package util
+
 import org.apache.spark.rdd.RDD
 import org.semanticweb.yars.nx.Literal
 import org.semanticweb.yars.nx.Node
-import org.semanticweb.yars.nx.parser.NxParser
+import org.apache.spark.rdd.RDD.rddToPairRDDFunctions
 
 object QuadProcessor {
 

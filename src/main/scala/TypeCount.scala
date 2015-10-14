@@ -13,6 +13,7 @@ import scala.util.Success
 import org.semanticweb.yars.nx.Node
 import scala.util.Failure
 import org.apache.spark.rdd.RDD
+import util.QuadProcessor
 
 object TypeCount {
 
@@ -49,7 +50,7 @@ object TypeCount {
       saveKV(pCount, "output/predCount")
       saveKV(tCount, "output/typeCount")
 
-      qp.getLiterals.saveAsTextFile("output/literals")
+      qp.getLiterals.map { _.getLabel }.saveAsTextFile("output/literals")
 
       qp.typeJoin.saveAsTextFile("output/typeJoin")
 

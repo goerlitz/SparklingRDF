@@ -1,7 +1,9 @@
+package util
+
 import org.apache.spark.SparkContext
-import org.scalatest.Finders
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
+import util.QuadProcessor
 
 class CountTest extends FlatSpec with Matchers {
 
