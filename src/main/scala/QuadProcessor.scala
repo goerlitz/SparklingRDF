@@ -5,22 +5,13 @@ import org.semanticweb.yars.nx.parser.NxParser
 
 object QuadProcessor {
 
-  type QuadRDD = RDD[(Node, Node, Node, Node)]
-
-  def apply(textRDD: RDD[String]) = {
-    val quadRDD = textRDD.map { line =>
-      // TODO: use Try as results
-      NxParser.parseNodes(line) match {
-        case Array(s, p, o, c) => (s, p, o, c)
-        case _                 => throw new UnsupportedOperationException("not a quad")
-      }
-    }
-    new QuadProcessor(quadRDD)
-  }
   val rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+
+  def apply(textRDD: RDD[String]) = new QuadProcessor(NQuadUtil.parse(textRDD))
+
 }
 
-class QuadProcessor(quadRDD: QuadProcessor.QuadRDD) {
+class QuadProcessor(quadRDD: RDD[(Node, Node, Node, Node)]) {
 
   import QuadProcessor.rdfType
 
@@ -44,5 +35,18 @@ class QuadProcessor(quadRDD: QuadProcessor.QuadRDD) {
       case o: Literal => true
       case _          => false
     }
+
+  def typeJoin = {
+    val typePair = quadRDD
+      .filter { case (s, p, o, c) => rdfType.equalsIgnoreCase(p.getLabel()) }
+      .map { case (s, p, o, c) => (s, o) }
+    val predPair = quadRDD
+      .filter { case (s, p, o, c) => !rdfType.equalsIgnoreCase(p.getLabel()) }
+      .map { case (s, p, o, c) => (s, p) }
+    typePair
+      .join(predPair)
+      .map { case (k, v) => v }
+      .groupByKey()
+  }
 
 }

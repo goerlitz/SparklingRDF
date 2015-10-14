@@ -22,8 +22,6 @@ object TypeCount {
 
   val rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 
-  type QuadRDD = RDD[(Node, Node, Node, Node)]
-
   def main(args: Array[String]): Unit = {
 
     // delete old output data
@@ -47,11 +45,13 @@ object TypeCount {
 
       val pCount = qp.predCount
       val tCount = qp.typeCount
-      
+
       saveKV(pCount, "output/predCount")
       saveKV(tCount, "output/typeCount")
-      
+
       qp.getLiterals.saveAsTextFile("output/literals")
+
+      qp.typeJoin.saveAsTextFile("output/typeJoin")
 
     } finally {
       sc.stop()
