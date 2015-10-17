@@ -17,26 +17,8 @@ class QuadProcessor(quadRDD: RDD[(Node, Node, Node, Node)]) {
 
   import QuadProcessor.rdfType
 
-  /**
-   * Count all predicates and order by descending value.
-   */
-  def predCount = quadRDD
-    .map { case (s, p, o, c) => (p.getLabel(), 1) }
-    .reduceByKey(_ + _)
-    .sortBy(_._2, false)
-
-  def typeCount = quadRDD
-    .filter { case (s, p, o, c) => rdfType.equalsIgnoreCase(p.getLabel()) }
-    .map { case (s, p, o, c) => (o.getLabel(), 1) }
-    .reduceByKey(_ + _)
-    .sortBy(_._2, false)
-
-  def getLiterals = quadRDD
-    .map { case (s, p, o, c) => o }
-    .filter {
-      case o: Literal => true
-      case _          => false
-    }
+  def predCount = quadRDD.map(_._2).distinct().count()
+  def typeCount = NQuadUtil.getTypes(quadRDD).distinct().count()
 
   def typeJoin = {
     val typePair = quadRDD

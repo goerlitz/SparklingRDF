@@ -1,16 +1,15 @@
 package util
 
-import org.scalatest.Matchers
-import org.scalatest.FlatSpec
 import org.apache.spark.SparkContext
 import org.scalatest.BeforeAndAfterAll
-import util.NQuadUtil
+import org.scalatest.FlatSpec
+import org.scalatest.Matchers
 
 class NQuadUtilTest extends FlatSpec with Matchers with BeforeAndAfterAll {
 
   val sc = new SparkContext("local", "CountTest")
 
-  "The NQuadUtil" should "parse valid NQuads correctly" in {
+  "The NQuadUtil" should "parse valid NQuads" in {
     val validNQuads = """
       _:Bob _:knows _:Tom _:MyFriends .
       <http://ex.com/Bob> <http://ex.com/knows> "Tom" <http://ex.com/Friends> .
@@ -21,7 +20,7 @@ class NQuadUtilTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val quadRDD = NQuadUtil.parse(textRDD)
     quadRDD.count() shouldEqual (validNQuads.length)
 
-    val errors = NQuadUtil.getParseFailures(textRDD)
+    val errors = NQuadUtil.parseErrors(textRDD)
     errors.count() shouldEqual (0)
   }
 
@@ -39,7 +38,7 @@ class NQuadUtilTest extends FlatSpec with Matchers with BeforeAndAfterAll {
     val quadRDD = NQuadUtil.parse(textRDD)
     quadRDD.count() shouldEqual (0)
 
-    val errors = NQuadUtil.getParseFailures(textRDD)
+    val errors = NQuadUtil.parseErrors(textRDD)
     errors.count() shouldEqual (invalidNQuads.length)
   }
 

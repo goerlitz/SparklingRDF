@@ -16,7 +16,6 @@ object TextAnalysis {
 
   val output = "output/"
 
-  def onlyLiteral = (rdd: RDD[Node]) => rdd.flatMap(_ match { case l: Literal => Some(l); case _ => None })
   def isLiteral = (n: Node) => n match { case l: Literal => true; case _ => false }
   def toLiteral = (n: Node) => n match { case l: Literal => l }
   def isLanguage(lang: String) = (l: Literal) => l.getLanguageTag match { case `lang` => true; case _ => false }
