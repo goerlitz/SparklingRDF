@@ -16,6 +16,8 @@ object TextAnalysis {
 
   val output = "output/"
 
+  val urlPattern = """(https?|file|ftp|gopher|telnet)://[\w\d:#@%/;$()~_?+-=.&]*""".r
+
   def isLiteral = (n: Node) => n match { case l: Literal => true; case _ => false }
   def toLiteral = (n: Node) => n match { case l: Literal => l }
   def isLanguage(lang: String) = (l: Literal) => l.getLanguageTag match { case `lang` => true; case _ => false }
@@ -35,6 +37,9 @@ object TextAnalysis {
       val textRDD = sc.textFile(dataFile)
       val quadRDD = NQuadUtil.parse(textRDD)
 
+      // TODO: remove Quads with same subject and object, but different predicate or context
+      //      val dedupRDD = quadRDD.map(x => (x._1, x._3)).distinct()
+
       // extract all object literals
       val literalRDD = quadRDD.map(_._3).filter(isLiteral).map(toLiteral)
 
@@ -47,8 +52,6 @@ object TextAnalysis {
       // extract only English text
       val englishTextRDD = literalRDD.filter(isLanguage("en")).map(_.getLabel)
 
-      englishTextRDD.saveAsTextFile(s"$output/enLit")
-
       println("# all literals: " + literalRDD.count())
       println("# english text: " + englishTextRDD.count())
 
@@ -56,11 +59,15 @@ object TextAnalysis {
       val duplicateTextRDD = englishTextRDD.map((_, 1)).reduceByKey(_ + _)
       duplicateTextRDD.takeOrdered(5)(Ordering.by(-_._2)).foreach(println)
 
+      // clean text
+      val cleanTextRDD = englishTextRDD.map(cleanText).distinct()
+      cleanTextRDD.saveAsTextFile(s"$output/enLit")
+
       // compute document vectors
-      val documents = englishTextRDD.map(split)
+      val documentRDD = cleanTextRDD.map(_.split(" ").toSeq)
 
       val htf = new HashingTF()
-      val tf = htf.transform(documents)
+      val tf = htf.transform(documentRDD)
 
       val idf = new IDF()
       val model = idf.fit(tf)
@@ -80,7 +87,7 @@ object TextAnalysis {
   }
 
   // remove punctuation and split string
-  def split = (x: String) => x.toLowerCase().replaceAll("""[\p{Punct}]""", " ").split(" ").toSeq
+  def cleanText(x: String) = removeUrl(x.toLowerCase()).replaceAll("""[\p{Punct}]""", " ").replaceAll("""\s\s+""", " ").trim()
 
-  def removeUrl = (x: String) => ???
+  def removeUrl = (x: String) => urlPattern.replaceAllIn(x, "")
 }
