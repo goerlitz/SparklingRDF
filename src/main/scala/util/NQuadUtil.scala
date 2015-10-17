@@ -1,10 +1,11 @@
 package util
 
-import org.apache.spark.rdd.RDD
-import org.semanticweb.yars.nx.parser.NxParser
-import scala.util.Try
-import org.semanticweb.yars.nx.Node
 import scala.util.Failure
+import scala.util.Try
+
+import org.apache.spark.rdd.RDD
+import org.semanticweb.yars.nx.Node
+import org.semanticweb.yars.nx.parser.NxParser
 
 object NQuadUtil {
 
@@ -14,7 +15,7 @@ object NQuadUtil {
    * @param textRDD
    * @return a RDD of Node tuples.
    */
-  def parse(textRDD: RDD[String]): RDD[(Node, Node, Node, Node)] = textRDD.map(tryParse).filter(_.isSuccess).map(_.get)
+  val parse = (textRDD: RDD[String]) => textRDD.map(tryParse).filter(_.isSuccess).map(_.get)
 
   def getParseFailures(textRDD: RDD[String]): RDD[Throwable] = textRDD.map(tryParse).filter(_.isFailure).map {
     case Failure(t) => t
